@@ -1,5 +1,5 @@
 from speak_engine import SpeakEngine
-import get_subjects
+from Services import get_subjects
 from config import *
 
 from kivy.app import App
@@ -38,11 +38,12 @@ class Assistant:
             print("End listening!")
             return self.audio
 
-    def call_assistant(self, instance):
+    def call_assistant(self, _):
+        """Call when clicked button. _ - instance, call microphone power and writing to self.audio recognize"""
         self.on_micro()
         try:
             self.__recognized = self.rec.recognize_google(self.audio, language="uk-UK").lower()
-            MyApp.set_label_text(self.__recognized)
+            MyApp.set_label_text(self.__recognized, "right")
 
         except UnknownValueError:
             self.__recognized = UNKNOWN_VALUE_ERROR
@@ -54,13 +55,12 @@ class Assistant:
             self.recognize_command()
 
     def filtering(self):
-        print("[log] filtering has been called")
         if self.__recognized == UNKNOWN_VALUE_ERROR:
             speak(UNKNOWN_VALUE_ERROR)
             return 0
 
         if self.__recognized == "RequestError":
-            print("Немає з'єднання")
+            MyApp.set_label_text("Network error", "left")
             return 0
 
         words = self.__recognized.split()
@@ -80,17 +80,17 @@ class Assistant:
 
         sql = sqlite3.connect("commands.db")
         self.filtered_voice = self.filtering()
-        similarity = 80
+
         for cmd in sql.execute("SELECT * FROM questions"):
-            if fuzz.ratio(cmd[0], self.filtered_voice) > similarity:
-                MyApp.set_label_text(cmd[1], "right")
+            if fuzz.ratio(cmd[0], self.filtered_voice) > SIMILARITY:
+                MyApp.set_label_text(cmd[1], "left")
                 speak(cmd[1])
                 sql.close()
                 return 0
 
         for cmd in sql.execute("SELECT * FROM URL"):
-            if fuzz.ratio(cmd[0], self.filtered_voice) > similarity:
-                MyApp.set_label_text(cmd[1], "right")
+            if fuzz.ratio(cmd[0], self.filtered_voice) > SIMILARITY:
+                MyApp.set_label_text(cmd[1], "left")
                 wb.open(cmd[1])
                 sql.close()
                 return 0
@@ -102,7 +102,7 @@ class Assistant:
                 "get_schedule": Service().get_schedule,
                 "exit": Service().exit
             }
-            if fuzz.ratio(cmd[0], self.filtered_voice) > similarity:
+            if fuzz.ratio(cmd[0], self.filtered_voice) > SIMILARITY:
                 for key, value in services.items():
                     if cmd[1] == key:
                         speak(value())
@@ -131,8 +131,8 @@ class Service:
         Request to LNTU schedule. Get json with disciplines
         """
         schedule_data = get_subjects.get_schedule()
-        if schedule_data == "404":
-            return "Сьогодні пари відсутні"
+        if schedule_data == "ERROR":
+            return "Немає даних. Схоже блищим часом немає пар"
 
         disciplines = ""
         for item in schedule_data['d']:
@@ -188,11 +188,11 @@ class WindowAssistantApp(App):
                          size_hint=(1, .4),
                          font_size=46)
 
-    def set_label_text(self, text, halign="left"):
+    def set_label_text(self, text, align="left"):
         for i in range(len(self.labels) - 1):
             self.labels[i].text, self.labels[i].halign = self.labels[i + 1].text, self.labels[i + 1].halign
 
-        self.labels[-1].text, self.labels[-1].halign = text, halign
+        self.labels[-1].text, self.labels[-1].halign = text, align
 
     def build(self):
         self.title = APP_TITLE

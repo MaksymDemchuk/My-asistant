@@ -40,4 +40,4 @@ def get_schedule(startDate=get_date(), endDate=get_date(7)):
         my_date = extract_json_from_jsonp(jsonp_string)
         return my_date
     else:
-        return "404"
+        return "ERROR"
