@@ -1,4 +1,5 @@
 import pyttsx3
+from config import CONVERSATION_SPEED
 
 
 class SpeakEngine:
@@ -11,6 +12,7 @@ class SpeakEngine:
         return self.voice.name
 
     def __call__(self, text):
+        self.speak_engine.setProperty('rate', CONVERSATION_SPEED)
         self.speak_engine.setProperty("voice", self.voice)
         self.speak_engine.setProperty("volume", self.volume)
         self.speak_engine.say(text)
