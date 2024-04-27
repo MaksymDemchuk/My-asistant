@@ -31,6 +31,7 @@ class Assistant:
         self.audio: Recognizer = self.rec
 
     def on_micro(self):
+        """Start listening"""
         with self.micro as source:
             print("start listening...")
             self.rec.adjust_for_ambient_noise(source)
@@ -55,6 +56,7 @@ class Assistant:
             self.recognize_command()
 
     def filtering(self):
+        """Filter input text"""
         if self.__recognized == UNKNOWN_VALUE_ERROR:
             speak(UNKNOWN_VALUE_ERROR)
             return 0
@@ -77,7 +79,7 @@ class Assistant:
         return self.__recognized
 
     def recognize_command(self):
-
+        """Check in database recognized voice with exist command"""
         sql = sqlite3.connect("commands.db")
         self.filtered_voice = self.filtering()
 
@@ -157,6 +159,7 @@ class Service:
 
     @staticmethod
     def exit():
+        """Exited app"""
         speak(EXITING)
         sys.exit()
 
@@ -189,6 +192,7 @@ class WindowAssistantApp(App):
                          font_size=46)
 
     def set_label_text(self, text, align="left"):
+        """Labels change values"""
         for i in range(len(self.labels) - 1):
             self.labels[i].text, self.labels[i].halign = self.labels[i + 1].text, self.labels[i + 1].halign
 
