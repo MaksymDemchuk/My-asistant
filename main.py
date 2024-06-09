@@ -127,19 +127,19 @@ class Service:
     
     @staticmethod
     def get_schedule() -> str:
-        """
-        Request to LNTU schedule. Get json with disciplines
-        """
+
         schedule_data = get_subjects.get_schedule()
-        if schedule_data == "ERROR":
-            return "Немає даних. Схоже блищим часом немає пар"
+        if not schedule_data:
+            return "Не вдалося отримати розклад."
 
         disciplines = ""
         for item in schedule_data['d']:
-            if item['full_date'] == get_subjects.get_date(7):
-                disciplines += item['study_time'] + " " + item['discipline'] + " "
+            disciplines += f"{item['study_time']} {item['discipline']} "
 
-        return "Сьогодні" + disciplines
+        if disciplines:
+            return "Сьогодні: " + disciplines
+        else:
+            return "Сьогодні немає пар."
 
     @staticmethod
     def now_time() -> str:

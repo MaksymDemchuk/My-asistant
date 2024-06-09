@@ -1,7 +1,6 @@
 import requests
 import json
 import re
-
 from datetime import datetime, timedelta
 
 
@@ -21,10 +20,9 @@ def get_date(n=0):
 
 
 def extract_json_from_jsonp(jsonp_string):
-    # Extract JSON from the JSONP string
     match = re.search(r'\((.*?)\)', jsonp_string)
     if match:
-        json_data = match.group(1)  
+        json_data = match.group(1)
         schedule_data = json.loads(json_data)
         print(schedule_data)
         return schedule_data
@@ -33,11 +31,29 @@ def extract_json_from_jsonp(jsonp_string):
 
 
 def get_schedule(startDate=get_date(), endDate=get_date(7)):
-    response = requests.get(f"https://vnz.osvita.net/WidgetSchedule.asmx/GetScheduleDataX?callback=jsonp1713552062155&_=1713552086424&aVuzID=11613&aStudyGroupID=%22VX3LAF8VK3J9%22&aStartDate=%22{startDate}%22&aEndDate=%22{endDate}%22&aStudyTypeID=null")
+    url = "https://vnz.osvita.net/WidgetSchedule.asmx/GetScheduleDataX"
+    params = {
+        'callback': 'jsonp1717010024814',
+        '_': '1717010054860',
+        'aVuzID': '11613',
+        'aStudyGroupID': '"VX3LAF8VK3J9"',
+        'aStartDate': '"01.03.2024"',
+        'aEndDate': '"01.03.2024"',
+        'aStudyTypeID': 'null'
+    }
 
-    if response.status_code == 200: 
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+    }
+
+    response = requests.get(url, params=params, headers=headers)
+    print(response.url)  # Додатково можна роздрукувати остаточний URL для перевірки
+    print(response.status_code)
+    if response.status_code == 200:
         jsonp_string = response.text
-        my_date = extract_json_from_jsonp(jsonp_string)
-        return my_date
+        print(jsonp_string)
+        return extract_json_from_jsonp(jsonp_string)
     else:
-        return "ERROR"
+        print(f"Error: Unable to fetch data. Status code: {response.status_code}")
+
+
